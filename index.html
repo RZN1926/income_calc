@@ -1,1554 +1,896 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Финансы</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #f0f2f5;
-      --white: #fff;
-      --surface: #f7f8fa;
-      --border: #e8eaed;
-      --income: #00c48c;
-      --income-bg: #e6f9f4;
-      --expense: #ff647c;
-      --expense-bg: #fff0f2;
-      --accent: #5b6af0;
-      --accent-bg: #eef0fd;
-      --text: #1a1d2e;
-      --sub: #6b7280;
-      --muted: #9ca3af;
-      --shadow: 0 2px 12px rgba(0, 0, 0, .06);
-      --shadow-lg: 0 8px 32px rgba(0, 0, 0, .1);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh
-    }
-
-    ::-webkit-scrollbar {
-      display: none
-    }
-
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none
-    }
-
-    /* ── AUTH SCREEN ── */
-    #authScreen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .auth-card {
-      background: var(--white);
-      border-radius: 24px;
-      padding: 40px 32px;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border);
-    }
-
-    .auth-logo {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #5b6af0, #8b5cf6);
-      border-radius: 18px;
-      margin: 0 auto 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-    }
-
-    .auth-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: -.3px
-    }
-
-    .auth-sub {
-      font-size: .88rem;
-      color: var(--muted);
-      margin-bottom: 32px;
-      line-height: 1.5
-    }
-
-    .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 14px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: var(--white);
-      font-family: 'Inter', sans-serif;
-      font-size: .95rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      transition: all .2s;
-    }
-
-    .google-btn:hover {
-      border-color: var(--accent);
-      background: var(--accent-bg)
-    }
-
-    .google-btn svg {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0
-    }
-
-    .auth-note {
-      font-size: .72rem;
-      color: var(--muted);
-      margin-top: 16px
-    }
-
-    /* ── APP ── */
-    #appScreen {
-      display: none
-    }
-
-    header {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px
-    }
-
-    .logo-icon {
-      width: 34px;
-      height: 34px;
-      background: linear-gradient(135deg, #5b6af0, #8b5cf6);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-    }
-
-    .logo-text {
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: -.3px
-    }
-
-    .hdr-right {
-      display: flex;
-      align-items: center;
-      gap: 8px
-    }
-
-    .sync-dot {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: .7rem;
-      color: var(--muted);
-    }
-
-    .sync-dot span {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--income);
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: .3
-      }
-    }
-
-    .saved-lbl {
-      font-size: .7rem;
-      color: var(--income)
-    }
-
-    .user-btn {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 11px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      font-family: 'Inter', sans-serif;
-      font-size: .73rem;
-      font-weight: 500;
-      color: var(--sub);
-      cursor: pointer;
-      transition: all .15s;
-    }
-
-    .user-btn:hover {
-      border-color: var(--expense);
-      color: var(--expense)
-    }
-
-    .user-avatar {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--accent-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .65rem;
-      font-weight: 700;
-      color: var(--accent);
-      overflow: hidden;
-    }
-
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover
-    }
-
-    main {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 18px 14px 80px
-    }
-
-    /* BALANCE */
-    .balance-card {
-      background: linear-gradient(135deg, #5b6af0, #8b5cf6);
-      border-radius: 22px;
-      padding: 26px 22px 22px;
-      color: #fff;
-      margin-bottom: 14px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(91, 106, 240, .35);
-    }
-
-    .balance-card::before {
-      content: '';
-      position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 160px;
-      height: 160px;
-      background: rgba(255, 255, 255, .08);
-      border-radius: 50%
-    }
-
-    .balance-card::after {
-      content: '';
-      position: absolute;
-      bottom: -50px;
-      left: 20px;
-      width: 130px;
-      height: 130px;
-      background: rgba(255, 255, 255, .05);
-      border-radius: 50%
-    }
-
-    .bal-label {
-      font-size: .7rem;
-      font-weight: 500;
-      opacity: .75;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 5px
-    }
-
-    .bal-amount {
-      font-size: clamp(2rem, 8vw, 3rem);
-      font-weight: 700;
-      letter-spacing: -1px;
-      line-height: 1.1;
-      margin-bottom: 20px;
-      position: relative;
-      z-index: 1;
-      transition: opacity .2s
-    }
-
-    .bal-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      position: relative;
-      z-index: 1
-    }
-
-    .bal-box {
-      background: rgba(255, 255, 255, .15);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 11px 14px;
-      border: 1px solid rgba(255, 255, 255, .2)
-    }
-
-    .bal-box-label {
-      font-size: .65rem;
-      opacity: .75;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      margin-bottom: 3px
-    }
-
-    .bal-box-amt {
-      font-size: 1rem;
-      font-weight: 700
-    }
-
-    /* TYPE TOGGLE */
-    .type-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 14px
-    }
-
-    .type-btn {
-      padding: 11px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: var(--white);
-      color: var(--sub);
-      font-family: 'Inter', sans-serif;
-      font-size: .88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .18s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .type-btn.ai {
-      background: var(--income-bg);
-      border-color: var(--income);
-      color: var(--income)
-    }
-
-    .type-btn.ae {
-      background: var(--expense-bg);
-      border-color: var(--expense);
-      color: var(--expense)
-    }
-
-    /* FORM */
-    .form-card {
-      background: var(--white);
-      border-radius: 20px;
-      padding: 18px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border)
-    }
-
-    .sec-label {
-      font-size: .67rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 8px
-    }
-
-    /* AMOUNT */
-    .amount-wrap {
-      position: relative;
-      margin-bottom: 16px
-    }
-
-    .amount-sym {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.3rem;
-      font-weight: 300;
-      color: var(--muted);
-      pointer-events: none
-    }
-
-    #amountInput {
-      width: 100%;
-      font-family: 'Inter', sans-serif;
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -.5px;
-      color: var(--text);
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 13px 14px 13px 42px;
-      outline: none;
-      transition: border-color .2s;
-      -webkit-appearance: none;
-    }
-
-    #amountInput:focus {
-      border-color: var(--accent)
-    }
-
-    #amountInput::placeholder {
-      color: var(--muted);
-      font-weight: 300
-    }
-
-    /* CATEGORY CARDS */
-    .cat-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      margin-bottom: 14px
-    }
-
-    .cat-card {
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 9px 11px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: var(--white);
-      cursor: pointer;
-      transition: all .16s;
-      min-width: 62px;
-      user-select: none;
-    }
-
-    .cat-card:hover {
-      border-color: var(--accent);
-      background: var(--accent-bg)
-    }
-
-    .cat-card.sel-inc {
-      background: var(--income-bg);
-      border-color: var(--income)
-    }
-
-    .cat-card.sel-inc .cn {
-      color: var(--income)
-    }
-
-    .cat-card.sel-exp {
-      background: var(--expense-bg);
-      border-color: var(--expense)
-    }
-
-    .cat-card.sel-exp .cn {
-      color: var(--expense)
-    }
-
-    .cat-card.add-c {
-      border-style: dashed;
-      opacity: .65
-    }
-
-    .cat-card.add-c:hover {
-      opacity: 1
-    }
-
-    .ce {
-      font-size: 1.35rem;
-      line-height: 1
-    }
-
-    .cn {
-      font-size: .58rem;
-      font-weight: 600;
-      color: var(--sub);
-      text-align: center;
-      white-space: nowrap;
-      max-width: 58px;
-      overflow: hidden;
-      text-overflow: ellipsis
-    }
-
-    /* NEW CAT */
-    .new-cat-row {
-      display: none;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 14px
-    }
-
-    .new-cat-row.open {
-      display: flex
-    }
-
-    .em-btn {
-      width: 42px;
-      height: 42px;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: border-color .15s;
-    }
-
-    .em-btn:hover {
-      border-color: var(--accent)
-    }
-
-    .nc-input {
-      flex: 1;
-      font-family: 'Inter', sans-serif;
-      font-size: .88rem;
-      padding: 10px 13px;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      color: var(--text);
-      outline: none;
-      transition: border-color .2s;
-      -webkit-appearance: none;
-    }
-
-    .nc-input:focus {
-      border-color: var(--accent)
-    }
-
-    .nc-ok {
-      width: 42px;
-      height: 42px;
-      background: var(--accent);
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      font-size: 1.1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0
-    }
-
-    .nc-cancel {
-      width: 42px;
-      height: 42px;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      color: var(--muted);
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0
-    }
-
-    .ep {
-      display: none;
-      flex-wrap: wrap;
-      gap: 4px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow-lg)
-    }
-
-    .ep.open {
-      display: flex
-    }
-
-    .ep-em {
-      font-size: 1.25rem;
-      padding: 4px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background .1s;
-      line-height: 1
-    }
-
-    .ep-em:hover {
-      background: var(--surface)
-    }
-
-    /* ROW2 */
-    .row2 {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      margin-bottom: 14px;
-      align-items: end
-    }
-
-    .f-col {
-      display: flex;
-      flex-direction: column;
-      gap: 5px
-    }
-
-    .f-col input {
-      font-family: 'Inter', sans-serif;
-      font-size: .88rem;
-      padding: 10px 13px;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      color: var(--text);
-      outline: none;
-      transition: border-color .2s;
-      -webkit-appearance: none;
-      width: 100%;
-    }
-
-    .f-col input:focus {
-      border-color: var(--accent)
-    }
-
-    .date-ctrl {
-      display: flex;
-      align-items: center;
-      gap: 4px
-    }
-
-    .day-btn {
-      width: 36px;
-      height: 36px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      background: var(--white);
-      color: var(--sub);
-      font-size: 1.1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all .15s;
-    }
-
-    .day-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-bg)
-    }
-
-    .day-btn:active {
-      transform: scale(.88)
-    }
-
-    #dateInput {
-      font-family: 'Inter', sans-serif;
-      font-size: .75rem;
-      font-weight: 600;
-      padding: 8px 9px;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      outline: none;
-      transition: border-color .2s;
-      -webkit-appearance: none;
-      width: 126px;
-    }
-
-    #dateInput:focus {
-      border-color: var(--accent)
-    }
-
-    /* ADD BTN */
-    .add-btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 14px;
-      font-family: 'Inter', sans-serif;
-      font-size: .95rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .18s;
-      letter-spacing: .2px;
-    }
-
-    .add-btn.inc {
-      background: var(--income);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(0, 196, 140, .3)
-    }
-
-    .add-btn.exp {
-      background: var(--expense);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(255, 100, 124, .3)
-    }
-
-    .add-btn:hover {
-      filter: brightness(1.06);
-      transform: translateY(-1px)
-    }
-
-    .add-btn:active {
-      transform: translateY(0);
-      filter: brightness(.97)
-    }
-
-    .add-btn:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-      transform: none;
-      filter: none
-    }
-
-    /* CHART */
-    .chart-card {
-      background: var(--white);
-      border-radius: 20px;
-      padding: 18px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border)
-    }
-
-    .chart-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px
-    }
-
-    .chart-ttl {
-      font-size: .88rem;
-      font-weight: 700
-    }
-
-    .chart-leg {
-      display: flex;
-      gap: 12px
-    }
-
-    .leg-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: .68rem;
-      color: var(--sub)
-    }
-
-    .leg-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 3px
-    }
-
-    .chart-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 86px
-    }
-
-    .chart-col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px
-    }
-
-    .bar-wrap {
-      width: 100%;
-      height: 70px;
-      display: flex;
-      align-items: flex-end;
-      gap: 2px
-    }
-
-    .bar {
-      border-radius: 4px 4px 0 0;
-      transition: height .5s cubic-bezier(.34, 1.56, .64, 1);
-      min-height: 2px;
-      flex: 1
-    }
-
-    .bar.in {
-      background: var(--income);
-      opacity: .85
-    }
-
-    .bar.ex {
-      background: var(--expense);
-      opacity: .85
-    }
-
-    .bar-lbl {
-      font-size: .58rem;
-      color: var(--muted);
-      font-weight: 600
-    }
-
-    /* HISTORY */
-    .hist-card {
-      background: var(--white);
-      border-radius: 20px;
-      padding: 18px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border)
-    }
-
-    .hist-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px
-    }
-
-    .hist-ttl {
-      font-size: .88rem;
-      font-weight: 700
-    }
-
-    .filter-row {
-      display: flex;
-      gap: 5px
-    }
-
-    .f-btn {
-      padding: 5px 11px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-family: 'Inter', sans-serif;
-      font-size: .7rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .15s;
-      white-space: nowrap;
-    }
-
-    .f-btn.act {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff
-    }
-
-    .tx-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px
-    }
-
-    .tx-item {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      padding: 11px;
-      border-radius: 14px;
-      border: 1.5px solid transparent;
-      background: var(--surface);
-      transition: all .18s;
-      animation: sIn .22s ease;
-    }
-
-    .tx-item:hover {
-      border-color: var(--border);
-      background: var(--white);
-      box-shadow: var(--shadow)
-    }
-
-    @keyframes sIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
-    }
-
-    .tx-ic {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      flex-shrink: 0
-    }
-
-    .tx-ic.income {
-      background: var(--income-bg)
-    }
-
-    .tx-ic.expense {
-      background: var(--expense-bg)
-    }
-
-    .tx-inf {
-      flex: 1;
-      min-width: 0
-    }
-
-    .tx-desc {
-      font-size: .85rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis
-    }
-
-    .tx-meta {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 2px
-    }
-
-    .tx-dt {
-      font-size: .68rem;
-      color: var(--muted)
-    }
-
-    .tx-badge {
-      font-size: .58rem;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 20px;
-      background: var(--accent-bg);
-      color: var(--accent)
-    }
-
-    .tx-right {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      flex-shrink: 0
-    }
-
-    .tx-amt {
-      font-size: .92rem;
-      font-weight: 700
-    }
-
-    .tx-amt.income {
-      color: var(--income)
-    }
-
-    .tx-amt.expense {
-      color: var(--expense)
-    }
-
-    .del-btn {
-      width: 26px;
-      height: 26px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: .75rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all .15s;
-    }
-
-    .del-btn:hover {
-      background: #ffe4e4;
-      color: var(--expense)
-    }
-
-    .empty {
-      text-align: center;
-      padding: 36px 20px;
-      color: var(--muted)
-    }
-
-    .empty .ei {
-      font-size: 2.2rem;
-      margin-bottom: 8px;
-      opacity: .45
-    }
-
-    .empty p {
-      font-size: .82rem
-    }
-
-    .loading {
-      text-align: center;
-      padding: 32px 0;
-      color: var(--muted);
-      font-size: .85rem
-    }
-
-    /* TOAST */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(90px);
-      background: #1a1d2e;
-      color: #fff;
-      border-radius: 14px;
-      padding: 11px 20px;
-      font-size: .83rem;
-      font-weight: 500;
-      z-index: 200;
-      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
-      white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
-      pointer-events: none;
-    }
-
-    .toast.show {
-      transform: translateX(-50%) translateY(0)
-    }
-
-    @media(max-width:380px) {
-      .row2 {
-        grid-template-columns: 1fr
-      }
-
-      .date-ctrl {
-        justify-content: flex-start
-      }
-
-      main {
-        padding: 14px 12px 80px
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Финансы</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f2f5;
+  --white: #ffffff;
+  --surface: #f7f8fa;
+  --border: #e8eaed;
+  --income: #00c48c;
+  --income-bg: #e6f9f4;
+  --expense: #ff647c;
+  --expense-bg: #fff0f2;
+  --accent: #5b6af0;
+  --accent-bg: #eef0fd;
+  --text: #1a1d2e;
+  --sub: #6b7280;
+  --muted: #9ca3af;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* HEADER */
+header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #5b6af0, #8b5cf6);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.logo-text { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.3px; }
+
+/* AUTH */
+.auth-area { display: flex; align-items: center; gap: 10px; }
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--border);
+}
+.user-avatar-placeholder {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #5b6af0, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+}
+.user-name { font-size: 0.78rem; font-weight: 600; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.btn-login {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 22px;
+  border: 1.5px solid var(--border); background: var(--white);
+  font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: all 0.18s; color: var(--text);
+}
+.btn-login:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.btn-login svg { flex-shrink: 0; }
+
+.btn-logout {
+  width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; transition: all 0.15s; color: var(--muted);
+}
+.btn-logout:hover { background: #ffe4e4; border-color: var(--expense); color: var(--expense); }
+
+/* SYNC BADGE */
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--muted);
+}
+.sync-dot.synced  { background: var(--income); }
+.sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+.sync-dot.error   { background: var(--expense); }
+
+/* LOGIN SCREEN */
+.login-screen {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  min-height: calc(100vh - 61px); padding: 20px; text-align: center;
+}
+.login-screen.visible { display: flex; }
+.login-card {
+  background: var(--white); border-radius: 24px; padding: 40px 32px;
+  box-shadow: var(--shadow-lg); border: 1px solid var(--border); max-width: 340px; width: 100%;
+}
+.login-icon { font-size: 3rem; margin-bottom: 16px; }
+.login-title { font-size: 1.35rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+.login-sub { font-size: 0.85rem; color: var(--sub); margin-bottom: 28px; line-height: 1.5; }
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 13px; border-radius: 14px;
+  border: 2px solid var(--border); background: var(--white);
+  font-family: 'Inter', sans-serif; font-size: 0.93rem; font-weight: 600;
+  cursor: pointer; transition: all 0.18s; color: var(--text);
+}
+.btn-google:hover { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); box-shadow: 0 4px 20px rgba(91,106,240,0.15); }
+
+/* MAIN */
+main { max-width: 640px; margin: 0 auto; padding: 18px 14px 100px; }
+
+/* LOADING */
+.loading-overlay {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px 20px; gap: 14px;
+}
+.loading-overlay.visible { display: flex; }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.loading-text { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+
+/* BALANCE CARD */
+.balance-card {
+  background: linear-gradient(135deg, #5b6af0 0%, #8b5cf6 100%);
+  border-radius: 22px; padding: 26px 22px 22px;
+  color: white; margin-bottom: 14px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(91,106,240,0.35);
+}
+.balance-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px; background: rgba(255,255,255,0.08); border-radius: 50%;
+}
+.balance-card::after {
+  content: ''; position: absolute; bottom: -50px; left: 20px;
+  width: 130px; height: 130px; background: rgba(255,255,255,0.05); border-radius: 50%;
+}
+.bal-label { font-size: 0.7rem; font-weight: 500; opacity: 0.75; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.bal-amount {
+  font-size: clamp(2rem, 8vw, 3rem); font-weight: 700; letter-spacing: -1px; line-height: 1.1;
+  margin-bottom: 20px; position: relative; z-index: 1; transition: opacity 0.2s;
+}
+.bal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; z-index: 1; }
+.bal-box {
+  background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+  border-radius: 14px; padding: 11px 14px; border: 1px solid rgba(255,255,255,0.2);
+}
+.bal-box-label { font-size: 0.65rem; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
+.bal-box-amt { font-size: 1rem; font-weight: 700; }
+
+/* TYPE TOGGLE */
+.type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.type-btn {
+  padding: 11px; border-radius: 14px; border: 2px solid var(--border);
+  background: var(--white); color: var(--sub);
+  font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.type-btn.active-income  { background: var(--income-bg);  border-color: var(--income);  color: var(--income); }
+.type-btn.active-expense { background: var(--expense-bg); border-color: var(--expense); color: var(--expense); }
+
+/* FORM CARD */
+.form-card {
+  background: var(--white); border-radius: 20px; padding: 18px;
+  margin-bottom: 14px; box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+.sec-label { font-size: 0.67rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+
+.amount-wrap { position: relative; margin-bottom: 16px; }
+.amount-sym {
+  position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+  font-size: 1.3rem; font-weight: 300; color: var(--muted); pointer-events: none;
+}
+#amountInput {
+  width: 100%; font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 700;
+  letter-spacing: -0.5px; color: var(--text);
+  background: var(--surface); border: 2px solid var(--border); border-radius: 14px;
+  padding: 13px 14px 13px 42px; outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+#amountInput:focus { border-color: var(--accent); }
+#amountInput::placeholder { color: var(--muted); font-weight: 300; }
+
+.cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; margin-bottom: 14px; }
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-card {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 9px 11px; border-radius: 14px; border: 2px solid var(--border);
+  background: var(--white); cursor: pointer; transition: all 0.16s;
+  min-width: 60px; user-select: none;
+}
+.cat-card .cat-em { font-size: 1.35rem; line-height: 1; }
+.cat-card .cat-nm { font-size: 0.58rem; font-weight: 600; color: var(--sub); text-align: center; white-space: nowrap; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
+.cat-card:hover { border-color: var(--accent); background: var(--accent-bg); }
+.cat-card.sel-income  { background: var(--income-bg);  border-color: var(--income); }
+.cat-card.sel-income  .cat-nm { color: var(--income); }
+.cat-card.sel-expense { background: var(--expense-bg); border-color: var(--expense); }
+.cat-card.sel-expense .cat-nm { color: var(--expense); }
+.cat-card.add-card { border-style: dashed; opacity: 0.65; }
+.cat-card.add-card:hover { opacity: 1; }
+
+.new-cat-row { display: none; gap: 8px; align-items: center; margin-bottom: 12px; }
+.new-cat-row.open { display: flex; }
+.em-btn {
+  width: 42px; height: 42px; background: var(--surface); border: 2px solid var(--border);
+  border-radius: 12px; font-size: 1.2rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: border-color 0.15s;
+}
+.em-btn:hover { border-color: var(--accent); }
+.nc-input {
+  flex: 1; font-family: 'Inter', sans-serif; font-size: 0.88rem; padding: 10px 13px;
+  background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
+  color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none;
+}
+.nc-input:focus { border-color: var(--accent); }
+.nc-ok {
+  width: 42px; height: 42px; background: var(--accent); border: none; border-radius: 12px;
+  color: white; font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: filter 0.15s;
+}
+.nc-ok:hover { filter: brightness(1.1); }
+
+.ep {
+  display: none; flex-wrap: wrap; gap: 4px; background: var(--white);
+  border: 1px solid var(--border); border-radius: 14px; padding: 10px;
+  margin-bottom: 10px; box-shadow: var(--shadow-lg);
+}
+.ep.open { display: flex; }
+.ep-em { font-size: 1.25rem; cursor: pointer; padding: 4px; border-radius: 8px; transition: background 0.1s; line-height: 1; }
+.ep-em:hover { background: var(--surface); }
+
+.row2 { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 14px; align-items: end; }
+.f-col { display: flex; flex-direction: column; gap: 5px; }
+.f-col input {
+  font-family: 'Inter', sans-serif; font-size: 0.88rem; padding: 10px 13px;
+  background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
+  color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none; width: 100%;
+}
+.f-col input:focus { border-color: var(--accent); }
+.date-ctrl { display: flex; align-items: center; gap: 4px; }
+.day-btn {
+  width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 10px;
+  background: var(--white); color: var(--sub); font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: all 0.15s; line-height: 1; font-family: 'Inter', sans-serif;
+}
+.day-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.day-btn:active { transform: scale(0.88); }
+#dateInput {
+  font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600;
+  padding: 8px 9px; background: var(--surface); border: 2px solid var(--border);
+  border-radius: 10px; color: var(--text); outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none; width: 124px;
+}
+#dateInput:focus { border-color: var(--accent); }
+
+.add-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 14px;
+  font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; transition: all 0.18s; letter-spacing: 0.2px;
+}
+.add-btn.income-btn  { background: var(--income);  color: white; box-shadow: 0 4px 20px rgba(0,196,140,0.3); }
+.add-btn.expense-btn { background: var(--expense); color: white; box-shadow: 0 4px 20px rgba(255,100,124,0.3); }
+.add-btn:hover  { filter: brightness(1.06); transform: translateY(-1px); }
+.add-btn:active { transform: translateY(0); filter: brightness(0.97); }
+.add-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* CHART */
+.chart-card { background: var(--white); border-radius: 20px; padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.chart-ttl { font-size: 0.88rem; font-weight: 700; }
+.chart-leg { display: flex; gap: 12px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: var(--sub); }
+.leg-dot { width: 8px; height: 8px; border-radius: 3px; }
+.chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 86px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-wrap { width: 100%; height: 70px; display: flex; align-items: flex-end; gap: 2px; }
+.bar { flex: 1; border-radius: 4px 4px 0 0; transition: height 0.5s cubic-bezier(0.34,1.56,0.64,1); min-height: 2px; }
+.bar.in  { background: var(--income);  opacity: 0.85; }
+.bar.ex  { background: var(--expense); opacity: 0.85; }
+.bar-lbl { font-size: 0.58rem; color: var(--muted); font-weight: 600; }
+
+/* HISTORY */
+.hist-card { background: var(--white); border-radius: 20px; padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.hist-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.hist-ttl { font-size: 0.88rem; font-weight: 700; }
+.filter-row { display: flex; gap: 5px; }
+.f-btn {
+  padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--muted); font-family: 'Inter', sans-serif;
+  font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.f-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+.tx-list { display: flex; flex-direction: column; gap: 6px; }
+.tx-item {
+  display: flex; align-items: center; gap: 11px; padding: 11px;
+  border-radius: 14px; border: 1.5px solid transparent;
+  background: var(--surface); transition: all 0.18s;
+  animation: sIn 0.22s ease;
+}
+.tx-item:hover { border-color: var(--border); background: var(--white); box-shadow: var(--shadow); }
+.tx-ic { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.tx-ic.income  { background: var(--income-bg); }
+.tx-ic.expense { background: var(--expense-bg); }
+.tx-inf { flex: 1; min-width: 0; }
+.tx-desc { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.tx-dt { font-size: 0.68rem; color: var(--muted); }
+.tx-badge { font-size: 0.58rem; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--accent-bg); color: var(--accent); }
+.tx-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.tx-amt { font-size: 0.92rem; font-weight: 700; }
+.tx-amt.income  { color: var(--income); }
+.tx-amt.expense { color: var(--expense); }
+.tx-del {
+  width: 26px; height: 26px; border: none; border-radius: 8px;
+  background: transparent; color: var(--muted); cursor: pointer;
+  font-size: 0.75rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.tx-del:hover { background: #ffe4e4; color: var(--expense); }
+
+.empty { text-align: center; padding: 36px 20px; color: var(--muted); }
+.empty .ei { font-size: 2.2rem; margin-bottom: 8px; opacity: 0.45; }
+.empty p { font-size: 0.82rem; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(90px);
+  background: #1a1d2e; color: white; border-radius: 14px;
+  padding: 11px 20px; font-size: 0.83rem; font-weight: 500;
+  z-index: 200; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@keyframes sIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+@media (max-width: 380px) {
+  .row2 { grid-template-columns: 1fr; }
+  .date-ctrl { justify-content: flex-start; }
+  main { padding: 14px 12px 80px; }
+}
+</style>
 </head>
-
 <body>
 
-  <!-- AUTH SCREEN -->
-  <div id="authScreen">
-    <div class="auth-card">
-      <div class="auth-logo">💸</div>
-      <div class="auth-title">Мои Финансы</div>
-      <div class="auth-sub">Учёт доходов и расходов.<br>Данные синхронизируются на всех устройствах.</div>
-      <button class="google-btn" onclick="signInGoogle()">
-        <svg viewBox="0 0 24 24">
-          <path fill="#4285F4"
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-          <path fill="#34A853"
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-          <path fill="#FBBC05"
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-          <path fill="#EA4335"
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-        </svg>
-        Войти через Google
-      </button>
-      <div class="auth-note">Ваши данные надёжно хранятся в облаке</div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">💸</div>
+    <span class="logo-text">Финансы</span>
+  </div>
+  <div class="auth-area">
+    <div class="sync-dot" id="syncDot" title="Статус синхронизации"></div>
+    <!-- Logged out -->
+    <button class="btn-login" id="btnLogin" onclick="loginGoogle()" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Войти
+    </button>
+    <!-- Logged in -->
+    <div class="user-info" id="userInfo" style="display:none">
+      <div class="user-avatar-placeholder" id="userAvatar">?</div>
+      <span class="user-name" id="userName"></span>
+      <button class="btn-logout" onclick="logoutUser()" title="Выйти">↩</button>
+    </div>
+  </div>
+</header>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen visible" id="loginScreen">
+  <div class="login-card">
+    <div class="login-icon">💸</div>
+    <div class="login-title">Личные финансы</div>
+    <div class="login-sub">Войдите, чтобы ваши данные сохранялись в облаке и были доступны с любого устройства</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84z"/></svg>
+      Войти через Google
+    </button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Загружаем ваши данные…</div>
+</div>
+
+<!-- APP -->
+<main id="appMain" style="display:none">
+
+  <div class="balance-card">
+    <div class="bal-label">Общий баланс</div>
+    <div class="bal-amount" id="balAmount">0,00 ₽</div>
+    <div class="bal-row">
+      <div class="bal-box">
+        <div class="bal-box-label">↑ Доходы</div>
+        <div class="bal-box-amt" id="totIncome">0,00 ₽</div>
+      </div>
+      <div class="bal-box">
+        <div class="bal-box-label">↓ Расходы</div>
+        <div class="bal-box-amt" id="totExpense">0,00 ₽</div>
+      </div>
     </div>
   </div>
 
-  <!-- APP SCREEN -->
-  <div id="appScreen">
-    <header>
-      <div class="logo">
-        <div class="logo-icon">💸</div>
-        <span class="logo-text">Финансы</span>
-      </div>
-      <div class="hdr-right">
-        <div id="syncInd" class="saved-lbl" style="display:none">☁️ Сохранено</div>
-        <div id="syncingInd" class="sync-dot" style="display:none"><span></span>Синхронизация...</div>
-        <button class="user-btn" onclick="signOut()">
-          <div class="user-avatar" id="userAvatar"></div>
-          <span id="userName"></span>
-          <span style="opacity:.5">Выйти</span>
-        </button>
-      </div>
-    </header>
-
-    <main>
-      <!-- BALANCE -->
-      <div class="balance-card">
-        <div class="bal-label">Общий баланс</div>
-        <div class="bal-amount" id="balAmount">0,00 ₽</div>
-        <div class="bal-row">
-          <div class="bal-box">
-            <div class="bal-box-label">↑ Доходы</div>
-            <div class="bal-box-amt" id="totIncome">0,00 ₽</div>
-          </div>
-          <div class="bal-box">
-            <div class="bal-box-label">↓ Расходы</div>
-            <div class="bal-box-amt" id="totExpense">0,00 ₽</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TYPE TOGGLE -->
-      <div class="type-toggle">
-        <button class="type-btn ai" id="btnIncome" onclick="setType('income')">↑ Доход</button>
-        <button class="type-btn" id="btnExpense" onclick="setType('expense')">↓ Расход</button>
-      </div>
-
-      <!-- FORM -->
-      <div class="form-card">
-        <div class="sec-label">Сумма</div>
-        <div class="amount-wrap">
-          <span class="amount-sym">₽</span>
-          <input type="number" id="amountInput" placeholder="0.00" min="0" step="0.01" inputmode="decimal"
-            onkeydown="if(event.key==='Enter')addTx()">
-        </div>
-
-        <div class="sec-label">Категория</div>
-        <div class="cat-scroll" id="catScroll"></div>
-
-        <div class="new-cat-row" id="newCatRow">
-          <button class="em-btn" id="emBtn" onclick="toggleEP()">😊</button>
-          <input class="nc-input" id="ncInput" type="text" placeholder="Название..."
-            onkeydown="if(event.key==='Enter')confirmCat()">
-          <button class="nc-ok" onclick="confirmCat()">✓</button>
-          <button class="nc-cancel" onclick="closeNewCat()">✕</button>
-        </div>
-        <div class="ep" id="emPicker"></div>
-
-        <div class="row2">
-          <div class="f-col">
-            <div class="sec-label">Описание</div>
-            <input type="text" id="descInput" placeholder="Необязательно..." onkeydown="if(event.key==='Enter')addTx()">
-          </div>
-          <div class="f-col">
-            <div class="sec-label">Дата</div>
-            <div class="date-ctrl">
-              <button class="day-btn" onclick="shiftDate(-1)">−</button>
-              <input type="date" id="dateInput">
-              <button class="day-btn" onclick="shiftDate(+1)">+</button>
-            </div>
-          </div>
-        </div>
-
-        <button class="add-btn inc" id="addBtn" onclick="addTx()">Добавить запись</button>
-      </div>
-
-      <!-- CHART -->
-      <div class="chart-card" id="chartCard" style="display:none">
-        <div class="chart-hdr">
-          <div class="chart-ttl">По месяцам</div>
-          <div class="chart-leg">
-            <div class="leg-item">
-              <div class="leg-dot" style="background:var(--income)"></div>Доходы
-            </div>
-            <div class="leg-item">
-              <div class="leg-dot" style="background:var(--expense)"></div>Расходы
-            </div>
-          </div>
-        </div>
-        <div class="chart-bars" id="chartBars"></div>
-      </div>
-
-      <!-- HISTORY -->
-      <div class="hist-card">
-        <div class="hist-hdr">
-          <div class="hist-ttl">История</div>
-          <div class="filter-row">
-            <button class="f-btn act" onclick="setFilter('all',this)">Все</button>
-            <button class="f-btn" onclick="setFilter('income',this)">Доходы</button>
-            <button class="f-btn" onclick="setFilter('expense',this)">Расходы</button>
-          </div>
-        </div>
-        <div class="tx-list" id="txList">
-          <div class="loading">☁️ Загрузка...</div>
-        </div>
-      </div>
-    </main>
+  <div class="type-toggle">
+    <button class="type-btn active-income" id="btnIncome"  onclick="setType('income')">↑ Доход</button>
+    <button class="type-btn"               id="btnExpense" onclick="setType('expense')">↓ Расход</button>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="form-card">
+    <div class="sec-label">Сумма</div>
+    <div class="amount-wrap">
+      <span class="amount-sym">₽</span>
+      <input type="number" id="amountInput" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+    </div>
 
-  <script>
-    // ── SUPABASE ──────────────────────────────────────────
-    const SUPA_URL = 'https://fnxtjxbmghtjdntstpht.supabase.co';
-    const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZueHRqeGJtZ2h0amRudHN0cGh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxOTA5NTgsImV4cCI6MjA4Nzc2Njk1OH0.QHDCc6bJlNukEXvswI4gcdO8xWy5w6WEm_x52SuRrhg';
-    const { createClient } = supabase;
-    const sb = createClient(SUPA_URL, SUPA_KEY);
+    <div class="sec-label">Категория</div>
+    <div class="cat-scroll" id="catScroll"></div>
 
-    // ── DEFAULT CATEGORIES ────────────────────────────────
-    const DEF_INC = [
-      { name: 'Зарплата', emoji: '💼' }, { name: 'Фриланс', emoji: '💻' },
-      { name: 'Подарок', emoji: '🎁' }, { name: 'Инвестиции', emoji: '📈' }, { name: 'Другое', emoji: '💡' }
-    ];
-    const DEF_EXP = [
-      { name: 'Еда', emoji: '🍕' }, { name: 'Транспорт', emoji: '🚗' }, { name: 'Жильё', emoji: '🏠' },
-      { name: 'Здоровье', emoji: '💊' }, { name: 'Развлечения', emoji: '🎬' }, { name: 'Одежда', emoji: '👗' },
-      { name: 'Связь', emoji: '📱' }, { name: 'Кредит', emoji: '🏦' }, { name: 'Другое', emoji: '💡' }
-    ];
-    const EMOJIS = ['💼', '💻', '🎁', '📈', '💡', '🍕', '🚗', '🏠', '💊', '🎬', '👗', '📱', '🏦', '🎓', '🐾', '✈️', '🛍️', '🍔', '☕', '🏋️', '🎮', '🌿', '🎵', '🎨', '🧾', '⚡', '🔧', '🏪', '🌮', '🥗', '🎯', '💰', '🏆'];
-    const MN = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    <div class="new-cat-row" id="newCatRow">
+      <button class="em-btn" id="emBtn" onclick="toggleEP()" title="Выбрать эмодзи">😊</button>
+      <input  class="nc-input" id="ncInput" type="text" placeholder="Название...">
+      <button class="nc-ok" onclick="confirmCat()">✓</button>
+    </div>
+    <div class="ep" id="emPicker"></div>
 
-    // ── STATE ─────────────────────────────────────────────
-    let curUser = null;
-    let txs = [];
-    let customInc = [];
-    let customExp = [];
-    let curType = 'income';
-    let selCat = 'Зарплата';
-    let selEmoji = '😊';
-    let curFilter = 'all';
+    <div class="row2">
+      <div class="f-col">
+        <div class="sec-label">Описание</div>
+        <input type="text" id="descInput" placeholder="Необязательно...">
+      </div>
+      <div class="f-col">
+        <div class="sec-label">Дата</div>
+        <div class="date-ctrl">
+          <button class="day-btn" onclick="shiftDate(-1)">−</button>
+          <input  type="date" id="dateInput">
+          <button class="day-btn" onclick="shiftDate(+1)">+</button>
+        </div>
+      </div>
+    </div>
 
-    // ── AUTH ──────────────────────────────────────────────
-    sb.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        curUser = session.user;
-        showApp();
-        await loadData();
-      } else {
-        curUser = null;
-        showAuth();
-      }
-    });
+    <button class="add-btn income-btn" id="addBtn" onclick="addTx()">Добавить запись</button>
+  </div>
 
-    async function signInGoogle() {
-      const { error } = await sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.href }
+  <div class="chart-card" id="chartCard" style="display:none">
+    <div class="chart-hdr">
+      <div class="chart-ttl">По месяцам</div>
+      <div class="chart-leg">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--income)"></div>Доходы</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--expense)"></div>Расходы</div>
+      </div>
+    </div>
+    <div class="chart-bars" id="chartBars"></div>
+  </div>
+
+  <div class="hist-card">
+    <div class="hist-hdr">
+      <div class="hist-ttl">История</div>
+      <div class="filter-row">
+        <button class="f-btn active" onclick="setFilter('all',this)">Все</button>
+        <button class="f-btn"        onclick="setFilter('income',this)">Доходы</button>
+        <button class="f-btn"        onclick="setFilter('expense',this)">Расходы</button>
+      </div>
+    </div>
+    <div class="tx-list" id="txList"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     FIREBASE SDK
+     ═══════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════
+//  ⚙️  ВСТАВЬТЕ СЮДА СВОИ ДАННЫЕ ИЗ FIREBASE CONSOLE
+//      https://console.firebase.google.com
+// ════════════════════════════════════════════════════
+const firebaseConfig = {
+    apiKey: "AIzaSyCjHLMMrmpUVStNt2bwqlHcH6md3DwXg3k",
+    authDomain: "income-calc-acfe0.firebaseapp.com",
+    projectId: "income-calc-acfe0",
+    storageBucket: "income-calc-acfe0.firebasestorage.app",
+    messagingSenderId: "339750751458",
+    appId: "1:339750751458:web:18f945661ee811ae4722bb",
+    measurementId: "G-2B2L21WH6K"
+};
+// ════════════════════════════════════════════════════
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// Проверка инициализации
+firebase.auth().useDeviceLanguage();
+window.onerror = function(msg) {
+  document.getElementById('loginScreen').classList.add('visible');
+  console.error('Firebase error:', msg);
+};
+
+// ── DEFAULTS ──────────────────────────────────────────
+const DEF_INC = [
+  {name:'Зарплата',  emoji:'💼'},
+  {name:'Фриланс',   emoji:'💻'},
+  {name:'Подарок',   emoji:'🎁'},
+  {name:'Инвестиции',emoji:'📈'},
+  {name:'Другое',    emoji:'💡'},
+];
+const DEF_EXP = [
+  {name:'Еда',        emoji:'🍕'},
+  {name:'Транспорт',  emoji:'🚗'},
+  {name:'Жильё',      emoji:'🏠'},
+  {name:'Здоровье',   emoji:'💊'},
+  {name:'Развлечения',emoji:'🎬'},
+  {name:'Одежда',     emoji:'👗'},
+  {name:'Связь',      emoji:'📱'},
+  {name:'Кредит',     emoji:'🏦'},
+  {name:'Другое',     emoji:'💡'},
+];
+const EMOJIS = '💼💻🎁📈💡🍕🚗🏠💊🎬👗📱🏦🎓🐾✈️🛍️🍔☕🏋️🎮🌿🎵🎨🧾⚡🔧🏪🌮🥗🎯💰🏆🎪🎭'.match(/./gu);
+
+// ── STATE ─────────────────────────────────────────────
+let currentUser = null;
+let customInc   = [];
+let customExp   = [];
+let txs         = [];
+let curType     = 'income';
+let selCat      = 'Зарплата';
+let selEmoji    = '😊';
+let curFilter   = 'all';
+let unsubTxs    = null;   // Firestore listener unsubscribe
+
+function getCats(type) {
+  return type === 'income' ? [...DEF_INC, ...customInc] : [...DEF_EXP, ...customExp];
+}
+
+// ── UI HELPERS ────────────────────────────────────────
+function showEl(id)  { document.getElementById(id).style.display = ''; }
+function hideEl(id)  { document.getElementById(id).style.display = 'none'; }
+function setSyncDot(state) { // 'idle' | 'syncing' | 'synced' | 'error'
+  const d = document.getElementById('syncDot');
+  d.className = 'sync-dot' + (state !== 'idle' ? ' ' + state : '');
+}
+
+// ── AUTH ──────────────────────────────────────────────
+function loginGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => toast('⚠️ Ошибка входа: ' + e.message));
+}
+
+function logoutUser() {
+  if (unsubTxs) { unsubTxs(); unsubTxs = null; }
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+
+    // Header
+    hideEl('btnLogin');
+    showEl('userInfo');
+    const av = document.getElementById('userAvatar');
+    if (user.photoURL) {
+      // Replace placeholder with <img>
+      av.outerHTML = `<img class="user-avatar" id="userAvatar" src="${user.photoURL}" alt="">`;
+    } else {
+      av.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
+    }
+    document.getElementById('userName').textContent = user.displayName || user.email || '';
+
+    // Show app
+    hideEl('loginScreen');
+    hideEl('loadingOverlay');
+    hideEl('appMain'); // hide until data loaded
+
+    loadUserData();
+  } else {
+    currentUser = null;
+    if (unsubTxs) { unsubTxs(); unsubTxs = null; }
+    txs = []; customInc = []; customExp = [];
+
+    // Header
+    showEl('btnLogin');
+    hideEl('userInfo');
+
+    hideEl('loadingOverlay');
+    hideEl('appMain');
+    showEl('loginScreen');
+    setSyncDot('idle');
+  }
+});
+
+// ── FIRESTORE PATHS ───────────────────────────────────
+function userRef()       { return db.collection('users').doc(currentUser.uid); }
+function txCollection()  { return userRef().collection('transactions'); }
+
+// ── LOAD DATA ─────────────────────────────────────────
+async function loadUserData() {
+  // Show loading overlay briefly
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  setSyncDot('syncing');
+
+  try {
+    // Load settings (custom categories)
+    const snap = await userRef().get();
+    if (snap.exists) {
+      const d = snap.data();
+      customInc = d.customInc || [];
+      customExp = d.customExp || [];
+    }
+
+    // Subscribe to transactions in real time
+    unsubTxs = txCollection()
+      .orderBy('ts', 'desc')
+      .onSnapshot(snap => {
+        txs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
+        setSyncDot('synced');
+        setTimeout(() => setSyncDot('idle'), 2000);
+      }, err => {
+        console.error(err);
+        setSyncDot('error');
+        toast('⚠️ Ошибка синхронизации');
       });
-      if (error) toast('Ошибка входа: ' + error.message);
-    }
 
-    async function signOut() {
-      await sb.auth.signOut();
-    }
+    // Init UI
+    document.getElementById('dateInput').valueAsDate = new Date();
+    const now = new Date();
+    document.getElementById('headerDate') &&
+      (document.getElementById('headerDate').textContent =
+        now.toLocaleDateString('ru-RU', {weekday:'short', day:'numeric', month:'long'}));
 
-    function showAuth() {
-      document.getElementById('authScreen').style.display = 'flex';
-      document.getElementById('appScreen').style.display = 'none';
-    }
+    const ep = document.getElementById('emPicker');
+    ep.innerHTML = EMOJIS.map(e =>
+      `<span class="ep-em" onclick="pickEmoji('${e}')">${e}</span>`
+    ).join('');
 
-    function showApp() {
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('appScreen').style.display = 'block';
-      // Set user info
-      const meta = curUser.user_metadata || {};
-      const name = (meta.full_name || meta.name || curUser.email || '').split(' ')[0];
-      document.getElementById('userName').textContent = name;
-      const av = document.getElementById('userAvatar');
-      if (meta.avatar_url) {
-        av.innerHTML = `<img src="${meta.avatar_url}" alt="">`;
-      } else {
-        av.textContent = name[0]?.toUpperCase() || '?';
-      }
-      // Date
-      document.getElementById('dateInput').valueAsDate = new Date();
-    }
+    setType('income');
 
-    // ── DB SETUP ──────────────────────────────────────────
-    async function ensureTables() {
-      // Tables created via Supabase dashboard — this just checks
-      return true;
-    }
+    hideEl('loadingOverlay');
+    showEl('appMain');
 
-    // ── LOAD DATA ─────────────────────────────────────────
-    async function loadData() {
-      setSyncing(true);
-      try {
-        const uid = curUser.id;
-        const [txRes, catRes] = await Promise.all([
-          sb.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }).order('created_at', { ascending: false }),
-          sb.from('custom_categories').select('*').eq('user_id', uid)
-        ]);
-        if (txRes.error) throw txRes.error;
-        if (catRes.error) throw catRes.error;
-        txs = txRes.data || [];
-        const cats = catRes.data || [];
-        customInc = cats.filter(c => c.type === 'income');
-        customExp = cats.filter(c => c.type === 'expense');
-      } catch (e) {
-        toast('Ошибка загрузки: ' + e.message);
-      }
-      setSyncing(false);
-      setType('income');
-      render();
-    }
+  } catch(e) {
+    console.error(e);
+    setSyncDot('error');
+    toast('⚠️ Не удалось загрузить данные');
+    hideEl('loadingOverlay');
+    showEl('appMain'); // show anyway
+  }
+}
 
-    // ── SYNCING INDICATOR ─────────────────────────────────
-    let syncTimer;
-    function setSyncing(on) {
-      document.getElementById('syncingInd').style.display = on ? 'flex' : 'none';
-      if (!on) {
-        document.getElementById('syncInd').style.display = 'flex';
-        clearTimeout(syncTimer);
-        syncTimer = setTimeout(() => document.getElementById('syncInd').style.display = 'none', 3000);
-      } else {
-        document.getElementById('syncInd').style.display = 'none';
-      }
-    }
+// ── SAVE SETTINGS ─────────────────────────────────────
+async function saveSettings() {
+  if (!currentUser) return;
+  setSyncDot('syncing');
+  try {
+    await userRef().set({ customInc, customExp }, { merge: true });
+    setSyncDot('synced');
+    setTimeout(() => setSyncDot('idle'), 1500);
+  } catch(e) {
+    setSyncDot('error');
+    toast('⚠️ Не сохранилось: ' + e.message);
+  }
+}
 
-    // ── TYPE ──────────────────────────────────────────────
-    function setType(t) {
-      curType = t;
-      document.getElementById('btnIncome').className = 'type-btn' + (t === 'income' ? ' ai' : '');
-      document.getElementById('btnExpense').className = 'type-btn' + (t === 'expense' ? ' ae' : '');
-      document.getElementById('addBtn').className = 'add-btn ' + (t === 'income' ? 'inc' : 'exp');
-      selCat = getCats(t)[0]?.name || '';
-      closeNewCat();
-      renderCats();
-    }
+// ── TYPE ──────────────────────────────────────────────
+function setType(t) {
+  curType = t;
+  document.getElementById('btnIncome').className  = 'type-btn' + (t==='income'  ? ' active-income'  : '');
+  document.getElementById('btnExpense').className = 'type-btn' + (t==='expense' ? ' active-expense' : '');
+  document.getElementById('addBtn').className     = 'add-btn ' + t + '-btn';
+  selCat = getCats(t)[0].name;
+  closeAdd();
+  renderCats();
+}
 
-    function getCats(t) {
-      return t === 'income' ? [...DEF_INC, ...customInc] : [...DEF_EXP, ...customExp];
-    }
-
-    // ── CATEGORIES ────────────────────────────────────────
-    function renderCats() {
-      const cats = getCats(curType);
-      const sc = document.getElementById('catScroll');
-      const scls = 'sel-' + (curType === 'income' ? 'inc' : 'exp');
-      sc.innerHTML = cats.map(c =>
-        `<div class="cat-card ${c.name === selCat ? scls : ''}" onclick="pickCat('${esc(c.name)}')">
-      <span class="ce">${c.emoji}</span>
-      <span class="cn">${escH(c.name)}</span>
-    </div>`
-      ).join('') +
-        `<div class="cat-card add-c" onclick="openNewCat()">
-    <span class="ce">＋</span><span class="cn">Своя</span>
+// ── CATEGORIES ────────────────────────────────────────
+function renderCats() {
+  const cats = getCats(curType);
+  const sc = document.getElementById('catScroll');
+  const sc_cls = 'sel-' + curType;
+  sc.innerHTML = cats.map(c => {
+    const sel = c.name === selCat ? sc_cls : '';
+    return `<div class="cat-card ${sel}" onclick="pickCat(this,'${esc(c.name)}')">
+      <span class="cat-em">${c.emoji}</span>
+      <span class="cat-nm">${c.name}</span>
+    </div>`;
+  }).join('') +
+  `<div class="cat-card add-card" onclick="openAdd()">
+    <span class="cat-em">＋</span>
+    <span class="cat-nm">Своя</span>
   </div>`;
-    }
+}
 
-    function pickCat(name) { selCat = name; closeNewCat(); renderCats(); }
+function pickCat(el, name) { selCat = name; closeAdd(); renderCats(); }
 
-    function openNewCat() {
-      document.getElementById('newCatRow').classList.add('open');
-      document.getElementById('ncInput').focus();
-    }
+function openAdd() {
+  document.getElementById('newCatRow').classList.add('open');
+  document.getElementById('ncInput').focus();
+}
+function closeAdd() {
+  document.getElementById('newCatRow').classList.remove('open');
+  document.getElementById('emPicker').classList.remove('open');
+  document.getElementById('ncInput').value = '';
+  selEmoji = '😊';
+  document.getElementById('emBtn').textContent = '😊';
+}
 
-    function closeNewCat() {
-      document.getElementById('newCatRow').classList.remove('open');
-      document.getElementById('emPicker').classList.remove('open');
-      document.getElementById('ncInput').value = '';
-      selEmoji = '😊';
-      document.getElementById('emBtn').textContent = '😊';
-    }
+function toggleEP() { document.getElementById('emPicker').classList.toggle('open'); }
+function pickEmoji(e) {
+  selEmoji = e;
+  document.getElementById('emBtn').textContent = e;
+  document.getElementById('emPicker').classList.remove('open');
+}
 
-    function toggleEP() { document.getElementById('emPicker').classList.toggle('open'); }
+async function confirmCat() {
+  const name = document.getElementById('ncInput').value.trim();
+  if (!name) { toast('Введите название'); return; }
+  const entry = { name, emoji: selEmoji };
+  if (curType === 'income') {
+    if (!customInc.find(c => c.name === name)) customInc.push(entry);
+  } else {
+    if (!customExp.find(c => c.name === name)) customExp.push(entry);
+  }
+  selCat = name;
+  closeAdd();
+  renderCats();
+  await saveSettings();
+  toast('✅ Категория «' + name + '» добавлена');
+}
 
-    function pickEmoji(e) {
-      selEmoji = e;
-      document.getElementById('emBtn').textContent = e;
-      document.getElementById('emPicker').classList.remove('open');
-    }
+// ── DATE ──────────────────────────────────────────────
+function shiftDate(d) {
+  const inp = document.getElementById('dateInput');
+  const dt = inp.value ? new Date(inp.value + 'T12:00:00') : new Date();
+  dt.setDate(dt.getDate() + d);
+  inp.value = dt.toISOString().split('T')[0];
+}
 
-    // Build emoji picker
-    document.getElementById('emPicker').innerHTML =
-      EMOJIS.map(e => `<span class="ep-em" onclick="pickEmoji('${e}')">${e}</span>`).join('');
+// ── ADD TX ────────────────────────────────────────────
+async function addTx() {
+  if (!currentUser) { toast('⚠️ Войдите в аккаунт'); return; }
+  const raw = document.getElementById('amountInput').value;
+  const amt = parseFloat(raw);
+  if (!raw || isNaN(amt) || amt <= 0) { toast('⚠️ Введите корректную сумму'); return; }
 
-    async function confirmCat() {
-      const name = document.getElementById('ncInput').value.trim();
-      if (!name) { toast('Введите название'); return; }
-      const entry = { user_id: curUser.id, type: curType, name, emoji: selEmoji };
-      setSyncing(true);
-      const { data, error } = await sb.from('custom_categories').insert(entry).select().single();
-      setSyncing(false);
-      if (error) { toast('Ошибка: ' + error.message); return; }
-      if (curType === 'income') customInc = [...customInc, data];
-      else customExp = [...customExp, data];
-      selCat = name;
-      closeNewCat();
-      renderCats();
-      toast('✅ Категория «' + name + '» добавлена');
-    }
+  const cats   = getCats(curType);
+  const catObj = cats.find(c => c.name === selCat) || cats[0];
+  const desc   = document.getElementById('descInput').value.trim() || catObj.name;
+  const date   = document.getElementById('dateInput').value || new Date().toISOString().split('T')[0];
 
-    // ── DATE ──────────────────────────────────────────────
-    function shiftDate(d) {
-      const inp = document.getElementById('dateInput');
-      const dt = inp.value ? new Date(inp.value + 'T12:00:00') : new Date();
-      dt.setDate(dt.getDate() + d);
-      inp.value = dt.toISOString().split('T')[0];
-    }
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true;
+  setSyncDot('syncing');
 
-    // ── ADD TX ────────────────────────────────────────────
-    async function addTx() {
-      const raw = document.getElementById('amountInput').value;
-      const amt = parseFloat(raw);
-      if (!raw || isNaN(amt) || amt <= 0) { toast('⚠️ Введите корректную сумму'); return; }
+  try {
+    await txCollection().add({
+      type:     curType,
+      amount:   amt,
+      category: catObj.name,
+      emoji:    catObj.emoji,
+      desc,
+      date,
+      ts:       firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('amountInput').value = '';
+    document.getElementById('descInput').value   = '';
+    toast(curType === 'income' ? '✅ Доход добавлен' : '✅ Расход добавлен');
+  } catch(e) {
+    toast('⚠️ Ошибка: ' + e.message);
+    setSyncDot('error');
+  } finally {
+    btn.disabled = false;
+  }
+}
 
-      const cats = getCats(curType);
-      const catObj = cats.find(c => c.name === selCat) || cats[0];
-      const desc = document.getElementById('descInput').value.trim() || catObj.name;
-      const date = document.getElementById('dateInput').value || new Date().toISOString().split('T')[0];
+// ── DELETE ────────────────────────────────────────────
+async function delTx(id) {
+  setSyncDot('syncing');
+  try {
+    await txCollection().doc(id).delete();
+    toast('🗑 Запись удалена');
+  } catch(e) {
+    toast('⚠️ Ошибка удаления');
+    setSyncDot('error');
+  }
+}
 
-      const row = {
-        user_id: curUser.id,
-        type: curType,
-        amount: amt,
-        category: catObj.name,
-        emoji: catObj.emoji,
-        description: desc,
-        date
-      };
+// ── RENDER ────────────────────────────────────────────
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency', currency: 'RUB',
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  }).format(n);
+}
+function fmtD(d) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
+}
 
-      const btn = document.getElementById('addBtn');
-      btn.disabled = true;
-      setSyncing(true);
-      const { data, error } = await sb.from('transactions').insert(row).select().single();
-      setSyncing(false);
-      btn.disabled = false;
+function render() {
+  const inc = txs.filter(t => t.type==='income' ).reduce((s,t) => s+t.amount, 0);
+  const exp = txs.filter(t => t.type==='expense').reduce((s,t) => s+t.amount, 0);
+  const bal = inc - exp;
 
-      if (error) { toast('Ошибка: ' + error.message); return; }
+  const ba = document.getElementById('balAmount');
+  ba.style.opacity = '0.4';
+  setTimeout(() => { ba.textContent = fmt(bal); ba.style.opacity = '1'; }, 80);
+  document.getElementById('totIncome').textContent  = fmt(inc);
+  document.getElementById('totExpense').textContent = fmt(exp);
 
-      txs = [data, ...txs];
-      document.getElementById('amountInput').value = '';
-      document.getElementById('descInput').value = '';
-      toast(curType === 'income' ? '✅ Доход добавлен' : '✅ Расход добавлен');
-      render();
-    }
+  renderList();
+  renderChart();
+}
 
-    // ── DELETE TX ─────────────────────────────────────────
-    async function delTx(id) {
-      setSyncing(true);
-      const { error } = await sb.from('transactions').delete().eq('id', id);
-      setSyncing(false);
-      if (error) { toast('Ошибка удаления'); return; }
-      txs = txs.filter(t => t.id !== id);
-      render();
-      toast('🗑 Запись удалена');
-    }
+function setFilter(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
 
-    // ── RENDER ────────────────────────────────────────────
-    function fmt(n) {
-      return new Intl.NumberFormat('ru-RU', {
-        style: 'currency', currency: 'RUB',
-        minimumFractionDigits: 2, maximumFractionDigits: 2
-      }).format(n);
-    }
-    function fmtD(d) {
-      return new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-    }
-
-    function render() {
-      const inc = txs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-      const exp = txs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-      const bal = inc - exp;
-
-      const ba = document.getElementById('balAmount');
-      ba.style.opacity = '.4';
-      setTimeout(() => { ba.textContent = fmt(bal); ba.style.opacity = '1'; }, 80);
-      document.getElementById('totIncome').textContent = fmt(inc);
-      document.getElementById('totExpense').textContent = fmt(exp);
-
-      renderList();
-      renderChart();
-    }
-
-    function setFilter(f, el) {
-      curFilter = f;
-      document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('act'));
-      el.classList.add('act');
-      renderList();
-    }
-
-    function renderList() {
-      const el = document.getElementById('txList');
-      const items = curFilter === 'all' ? txs : txs.filter(t => t.type === curFilter);
-      if (!items.length) {
-        el.innerHTML = `<div class="empty"><div class="ei">💳</div><p>Записей пока нет</p></div>`;
-        return;
-      }
-      el.innerHTML = items.map(t => `
+function renderList() {
+  const el = document.getElementById('txList');
+  const items = curFilter === 'all' ? txs : txs.filter(t => t.type === curFilter);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty"><div class="ei">💳</div><p>Записей пока нет</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(t => `
     <div class="tx-item">
       <div class="tx-ic ${t.type}">${t.emoji || '💡'}</div>
       <div class="tx-inf">
-        <div class="tx-desc">${escH(t.description)}</div>
+        <div class="tx-desc">${escH(t.desc)}</div>
         <div class="tx-meta">
           <span class="tx-dt">${fmtD(t.date)}</span>
           <span class="tx-badge">${escH(t.category)}</span>
         </div>
       </div>
       <div class="tx-right">
-        <span class="tx-amt ${t.type}">${t.type === 'income' ? '+' : '−'}${fmt(Number(t.amount))}</span>
-        <button class="del-btn" onclick="delTx(${t.id})">✕</button>
+        <span class="tx-amt ${t.type}">${t.type==='income'?'+':'−'}${fmt(t.amount)}</span>
+        <button class="tx-del" onclick="delTx('${t.id}')">✕</button>
       </div>
-    </div>`
-      ).join('');
-    }
+    </div>
+  `).join('');
+}
 
-    function renderChart() {
-      if (txs.length < 2) { document.getElementById('chartCard').style.display = 'none'; return; }
-      document.getElementById('chartCard').style.display = 'block';
-      const months = {};
-      txs.forEach(t => {
-        const k = t.date.slice(0, 7);
-        if (!months[k]) months[k] = { income: 0, expense: 0 };
-        months[k][t.type] += Number(t.amount);
-      });
-      const keys = Object.keys(months).sort().slice(-6);
-      const maxV = Math.max(...keys.flatMap(k => [months[k].income, months[k].expense]), 1);
-      document.getElementById('chartBars').innerHTML = keys.map(k => {
-        const ih = Math.round((months[k].income / maxV) * 66);
-        const eh = Math.round((months[k].expense / maxV) * 66);
-        const lbl = MN[parseInt(k.split('-')[1]) - 1];
-        return `<div class="chart-col">
+function renderChart() {
+  if (txs.length < 2) { document.getElementById('chartCard').style.display='none'; return; }
+  document.getElementById('chartCard').style.display='block';
+  const months = {};
+  txs.forEach(t => {
+    const k = t.date.slice(0,7);
+    if (!months[k]) months[k] = {income:0, expense:0};
+    months[k][t.type] += t.amount;
+  });
+  const keys = Object.keys(months).sort().slice(-6);
+  const maxV = Math.max(...keys.flatMap(k => [months[k].income, months[k].expense]), 1);
+  const MN = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  document.getElementById('chartBars').innerHTML = keys.map(k => {
+    const ih = Math.round((months[k].income  / maxV) * 66);
+    const eh = Math.round((months[k].expense / maxV) * 66);
+    const lbl = MN[parseInt(k.split('-')[1]) - 1];
+    return `<div class="chart-col">
       <div class="bar-wrap">
         <div class="bar in" style="height:${ih}px"></div>
         <div class="bar ex" style="height:${eh}px"></div>
       </div>
       <div class="bar-lbl">${lbl}</div>
     </div>`;
-      }).join('');
-    }
+  }).join('');
+}
 
-    // ── UTILS ─────────────────────────────────────────────
-    let _tt;
-    function toast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
-      clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove('show'), 2400);
-    }
-    function escH(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-    function esc(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
-  </script>
+// ── UTILS ─────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s)  { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+</script>
 </body>
-
 </html>
