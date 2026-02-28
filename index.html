@@ -1722,9 +1722,8 @@
         // ── RENDER ────────────────────────────────────────────
         function fmt(n) {
             return new Intl.NumberFormat('ru-RU', {
-                style: 'currency', currency: 'RUB',
                 minimumFractionDigits: 2, maximumFractionDigits: 2
-            }).format(n);
+            }).format(n) + ' ⃀';
         }
         function fmtD(d) {
             return new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
