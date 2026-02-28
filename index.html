@@ -1183,6 +1183,41 @@
                 padding: 14px 12px 80px;
             }
         }
+
+        /* RANGE PICKER */
+        .range-row {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        }
+        .range-row.visible {
+            display: flex;
+        }
+        .range-row input[type="date"] {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 7px 10px;
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            flex: 1;
+        }
+        .range-row input[type="date"]:focus {
+            border-color: var(--accent);
+        }
+        .range-sep {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -1325,12 +1360,18 @@
                 <button class="p-tab active" onclick="setPeriod('all',this)">Всё время</button>
                 <button class="p-tab" onclick="setPeriod('week',this)">Неделя</button>
                 <button class="p-tab" onclick="setPeriod('month',this)">Месяц</button>
+                <button class="p-tab" onclick="setPeriod('range',this)">Диапазон</button>
             </div>
             <div class="period-nav" id="periodNav">
                 <button class="pnav-btn" onclick="shiftPeriod(-1)">‹</button>
                 <div class="period-label" id="periodLabel"></div>
                 <button class="pnav-btn" onclick="shiftPeriod(+1)">›</button>
             </div>
+        </div>
+        <div class="range-row" id="rangeRow">
+            <input type="date" id="rangeFrom" onchange="render()">
+            <span class="range-sep">—</span>
+            <input type="date" id="rangeTo" onchange="render()">
         </div>
 
         <div class="hist-card">
@@ -1428,9 +1469,15 @@
         }
 
         // ── AUTH ──────────────────────────────────────────────
-        function loginGoogle() {
+        async function loginGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => toast('⚠️ Ошибка входа: ' + e.message));
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (e) {
+                if (e.code !== 'auth/popup-closed-by-user') {
+                    toast('⚠️ Ошибка входа: ' + e.message);
+                }
+            }
         }
 
         function logoutUser() {
@@ -1701,6 +1748,8 @@
                 balLabel.textContent = 'Общий баланс';
             } else if (curPeriod === 'month') {
                 balLabel.textContent = 'Баланс за месяц';
+            } else if (curPeriod === 'range') {
+                balLabel.textContent = 'Баланс за период';
             } else {
                 balLabel.textContent = 'Баланс за неделю';
             }
@@ -1719,10 +1768,25 @@
             document.querySelectorAll('.p-tab').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             const nav = document.getElementById('periodNav');
+            const rangeRow = document.getElementById('rangeRow');
             if (p === 'all') {
                 nav.classList.remove('visible');
+                rangeRow.classList.remove('visible');
+            } else if (p === 'range') {
+                nav.classList.remove('visible');
+                rangeRow.classList.add('visible');
+                // Set defaults: this month
+                const now = new Date();
+                const y = now.getFullYear(), m = now.getMonth();
+                const from = new Date(y, m, 1);
+                const to = new Date(y, m + 1, 0);
+                if (!document.getElementById('rangeFrom').value)
+                    document.getElementById('rangeFrom').value = from.toISOString().split('T')[0];
+                if (!document.getElementById('rangeTo').value)
+                    document.getElementById('rangeTo').value = to.toISOString().split('T')[0];
             } else {
                 nav.classList.add('visible');
+                rangeRow.classList.remove('visible');
                 updatePeriodLabel();
             }
             render();
@@ -1769,6 +1833,17 @@
 
         function filterByPeriod(list) {
             if (curPeriod === 'all') return list;
+            if (curPeriod === 'range') {
+                const fromVal = document.getElementById('rangeFrom') && document.getElementById('rangeFrom').value;
+                const toVal = document.getElementById('rangeTo') && document.getElementById('rangeTo').value;
+                if (!fromVal && !toVal) return list;
+                return list.filter(t => {
+                    const d = t.date;
+                    if (fromVal && d < fromVal) return false;
+                    if (toVal && d > toVal) return false;
+                    return true;
+                });
+            }
             const { from, to } = getPeriodRange();
             return list.filter(t => {
                 const d = new Date(t.date + 'T12:00:00');
