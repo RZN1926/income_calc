@@ -1202,17 +1202,72 @@
             }
         }
 
-        @media (max-width: 380px) {
+        @media (max-width: 480px) {
             .row2 {
                 grid-template-columns: 1fr;
             }
-
             .date-ctrl {
                 justify-content: flex-start;
             }
-
             main {
                 padding: 14px 12px 80px;
+            }
+            /* Header: hide username text on small screens */
+            .user-name {
+                display: none;
+            }
+            /* Header: tighten gaps */
+            .auth-area {
+                gap: 6px;
+            }
+            .user-info {
+                gap: 5px;
+            }
+            /* Period tabs: allow wrapping */
+            .period-tabs {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            .p-tab {
+                font-size: 0.72rem;
+                padding: 5px 10px;
+            }
+            /* Sort row compact */
+            .sort-row {
+                gap: 5px;
+            }
+            .s-btn {
+                font-size: 0.72rem;
+                padding: 4px 9px;
+            }
+            /* History header wrap */
+            .hist-hdr {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .filter-row {
+                flex-wrap: wrap;
+            }
+            /* Balance card */
+            .bal-amount {
+                font-size: clamp(1.7rem, 7vw, 2.5rem);
+            }
+            /* Burger panel full width on mobile */
+            .burger-panel {
+                width: 100vw;
+            }
+        }
+        @media (max-width: 360px) {
+            .logo-text {
+                font-size: 0.9rem;
+            }
+            .btn-theme {
+                width: 28px;
+                height: 28px;
+                font-size: 0.85rem;
+            }
+            .sync-dot {
+                display: none;
             }
         }
 
@@ -1310,6 +1365,297 @@
             border-color: var(--accent);
             color: var(--accent);
         }
+        /* BURGER BUTTON */
+        .btn-burger {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .btn-burger span {
+            display: block;
+            width: 14px;
+            height: 1.5px;
+            background: var(--sub);
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+        .btn-burger:hover {
+            border-color: var(--accent);
+            background: var(--accent-bg);
+        }
+        .btn-burger:hover span { background: var(--accent); }
+        .btn-burger.open span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+        .btn-burger.open span:nth-child(2) { opacity: 0; }
+        .btn-burger.open span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+
+        /* BURGER OVERLAY */
+        .burger-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 90;
+            backdrop-filter: blur(2px);
+        }
+        .burger-overlay.open { display: block; }
+
+        /* BURGER PANEL */
+        .burger-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(320px, 90vw);
+            height: 100vh;
+            background: var(--white);
+            border-left: 1px solid var(--border);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.15);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .burger-panel.open { transform: translateX(0); }
+
+        .bp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 1;
+        }
+        .bp-title {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .bp-close {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: var(--surface);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .bp-close:hover { background: #ffe4e4; color: var(--expense); }
+
+        .bp-section {
+            border-bottom: 1px solid var(--border);
+        }
+        .bp-sec-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 18px;
+            background: none;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .bp-sec-btn:hover { background: var(--surface); }
+        .bp-arrow {
+            font-size: 1.1rem;
+            color: var(--muted);
+            transition: transform 0.22s;
+            display: inline-block;
+        }
+        .bp-arrow.open { transform: rotate(90deg); }
+
+        .bp-sec-body {
+            display: none;
+            padding: 4px 18px 16px;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .bp-sec-body.open { display: flex; }
+
+        .bp-sub-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-top: 4px;
+            margin-bottom: 2px;
+        }
+        .bp-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .bp-row-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .bp-select {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .bp-select:focus { border-color: var(--accent); }
+        body.dark .bp-select { color-scheme: dark; }
+
+        .bp-action-btn {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+        }
+        .bp-action-btn:hover { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+        .bp-action-btn.danger:hover { border-color: var(--expense); background: var(--expense-bg); color: var(--expense); }
+
+        /* STATS */
+        .stat-list { display: flex; flex-direction: column; gap: 7px; }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+        .stat-rank {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted);
+            width: 16px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+        .stat-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .stat-bar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stat-bar-name {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .stat-bar-amt {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--expense);
+        }
+        .stat-bar-bg {
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--expense), #ff9fb0);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .stat-avg {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            padding: 8px 0 4px;
+        }
+        .stat-avg-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .stat-empty {
+            font-size: 0.8rem;
+            color: var(--muted);
+            padding: 6px 0;
+        }
+
+        /* CONFIRM MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: var(--white);
+            border-radius: 22px;
+            padding: 32px 26px 24px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            animation: sIn 0.2s ease;
+        }
+        .modal-icon { font-size: 2.4rem; margin-bottom: 12px; }
+        .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+        .modal-sub { font-size: 0.8rem; color: var(--sub); line-height: 1.5; margin-bottom: 22px; }
+        .modal-btns { display: flex; gap: 10px; }
+        .modal-btn {
+            flex: 1;
+            padding: 11px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .modal-btn.cancel { background: var(--surface); color: var(--sub); border: 1.5px solid var(--border); }
+        .modal-btn.cancel:hover { border-color: var(--accent); color: var(--accent); }
+        .modal-btn.confirm { background: var(--expense); color: white; }
+        .modal-btn.confirm:hover { opacity: 0.88; }
     </style>
 </head>
 
@@ -1342,9 +1688,67 @@
                 <div class="user-avatar-placeholder" id="userAvatar">?</div>
                 <span class="user-name" id="userName"></span>
                 <button class="btn-logout" onclick="logoutUser()" title="Выйти">↩</button>
+                <button class="btn-burger" id="btnBurger" onclick="toggleBurger()" title="Меню">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
         </div>
     </header>
+
+    <!-- BURGER MENU -->
+    <div class="burger-overlay" id="burgerOverlay" onclick="closeBurger()"></div>
+    <div class="burger-panel" id="burgerPanel">
+        <div class="bp-header">
+            <span class="bp-title">Меню</span>
+            <button class="bp-close" onclick="closeBurger()">✕</button>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="bp-section">
+            <button class="bp-sec-btn" onclick="toggleSection('secSettings')">
+                <span>⚙️ Настройки</span>
+                <span class="bp-arrow" id="arrowSettings">›</span>
+            </button>
+            <div class="bp-sec-body" id="secSettings">
+                <div class="bp-sub-label">Данные</div>
+                <button class="bp-action-btn" onclick="exportData()">
+                    📥 Экспорт в CSV
+                </button>
+                <button class="bp-action-btn danger" onclick="confirmDeleteAll()">
+                    🗑 Удалить все данные
+                </button>
+            </div>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="bp-section">
+            <button class="bp-sec-btn" onclick="toggleSection('secStats')">
+                <span>📊 Статистика</span>
+                <span class="bp-arrow" id="arrowStats">›</span>
+            </button>
+            <div class="bp-sec-body" id="secStats">
+                <div class="bp-sub-label">Топ расходов по категориям</div>
+                <select class="bp-select stat-month-sel" id="statMonthTop" onchange="renderStats()" style="width:100%;margin-bottom:10px"></select>
+                <div id="statTopCats" class="stat-list"></div>
+                <div class="bp-sub-label" style="margin-top:14px">Средние траты в месяц</div>
+                <select class="bp-select stat-month-sel" id="statMonthAvg" onchange="renderStats()" style="width:100%;margin-bottom:10px"></select>
+                <div id="statAvgMonth" class="stat-avg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM DELETE MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="modal-icon">⚠️</div>
+            <div class="modal-title">Удалить все данные?</div>
+            <div class="modal-sub">Это действие необратимо. Все транзакции будут удалены навсегда.</div>
+            <div class="modal-btns">
+                <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+                <button class="modal-btn confirm" onclick="deleteAllData()">Удалить</button>
+            </div>
+        </div>
+    </div>
 
     <!-- LOGIN SCREEN -->
     <div class="login-screen visible" id="loginScreen">
@@ -1668,6 +2072,7 @@
                 ).join('');
 
                 setType('income');
+                loadCurrency();
 
                 hideEl('loadingOverlay');
                 showEl('appMain');
@@ -1819,11 +2224,6 @@
         }
 
         // ── RENDER ────────────────────────────────────────────
-        function fmt(n) {
-            return new Intl.NumberFormat('ru-RU', {
-                minimumFractionDigits: 2, maximumFractionDigits: 2
-            }).format(n) + ' ⃀';
-        }
         function fmtD(d) {
             return new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
         }
@@ -2027,6 +2427,164 @@
         }
         function escH(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function esc(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
+        // ── CURRENCY ──────────────────────────────────────────
+        function loadCurrency() {} // kept for compatibility
+        function fmt(n) {
+            return new Intl.NumberFormat('ru-RU', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2
+            }).format(n) + ' ⃀';
+        }
+
+        // ── BURGER MENU ───────────────────────────────────────
+        function toggleBurger() {
+            const panel = document.getElementById('burgerPanel');
+            panel.classList.contains('open') ? closeBurger() : openBurger();
+        }
+        function openBurger() {
+            document.getElementById('burgerPanel').classList.add('open');
+            document.getElementById('burgerOverlay').classList.add('open');
+            document.getElementById('btnBurger').classList.add('open');
+            loadCurrency();
+            renderStats();
+        }
+        function closeBurger() {
+            document.getElementById('burgerPanel').classList.remove('open');
+            document.getElementById('burgerOverlay').classList.remove('open');
+            document.getElementById('btnBurger').classList.remove('open');
+        }
+        function toggleSection(id) {
+            const body = document.getElementById(id);
+            const arrowId = id === 'secSettings' ? 'arrowSettings' : 'arrowStats';
+            const arrow = document.getElementById(arrowId);
+            const isOpen = body.classList.contains('open');
+            body.classList.toggle('open', !isOpen);
+            arrow.classList.toggle('open', !isOpen);
+            if (!isOpen && id === 'secStats') renderStats();
+        }
+
+        // ── STATISTICS ────────────────────────────────────────
+        const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+        function getAvailableMonths() {
+            const set = new Set(txs.map(t => t.date.slice(0,7)));
+            return Array.from(set).sort().reverse(); // newest first
+        }
+
+        function populateMonthSelect(selId, selectedVal) {
+            const sel = document.getElementById(selId);
+            const months = getAvailableMonths();
+            const cur = selectedVal || sel.value || months[0] || '';
+            sel.innerHTML = `<option value="">Все время</option>` +
+                months.map(m => {
+                    const [y, mo] = m.split('-');
+                    const label = MONTHS_RU[parseInt(mo)-1] + ' ' + y;
+                    return `<option value="${m}" ${m === cur ? 'selected' : ''}>${label}</option>`;
+                }).join('');
+        }
+
+        function renderStats() {
+            populateMonthSelect('statMonthTop');
+            populateMonthSelect('statMonthAvg');
+
+            const topMonth = document.getElementById('statMonthTop').value;
+            const avgMonth = document.getElementById('statMonthAvg').value;
+
+            // -- Top expenses by category --
+            let expTop = txs.filter(t => t.type === 'expense');
+            if (topMonth) expTop = expTop.filter(t => t.date.slice(0,7) === topMonth);
+            const catMap = {};
+            expTop.forEach(t => {
+                if (!catMap[t.category]) catMap[t.category] = { emoji: t.emoji || '💡', total: 0 };
+                catMap[t.category].total += t.amount;
+            });
+            const sorted = Object.entries(catMap).sort((a, b) => b[1].total - a[1].total).slice(0, 5);
+            const maxVal = sorted[0]?.[1].total || 1;
+            const topEl = document.getElementById('statTopCats');
+            if (!sorted.length) {
+                topEl.innerHTML = `<div class="stat-empty">Нет данных о расходах</div>`;
+            } else {
+                topEl.innerHTML = sorted.map(([name, d], i) => `
+                    <div class="stat-item">
+                        <div class="stat-rank">#${i+1}</div>
+                        <div class="stat-bar-wrap">
+                            <div class="stat-bar-row">
+                                <span class="stat-bar-name">${d.emoji} ${escH(name)}</span>
+                                <span class="stat-bar-amt">${fmt(d.total)}</span>
+                            </div>
+                            <div class="stat-bar-bg">
+                                <div class="stat-bar-fill" style="width:${Math.round(d.total/maxVal*100)}%"></div>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            // -- Average monthly spending --
+            let expAvg = txs.filter(t => t.type === 'expense');
+            const avgEl = document.getElementById('statAvgMonth');
+            if (!expAvg.length) {
+                avgEl.innerHTML = `<div class="stat-empty">Нет данных о расходах</div>`;
+            } else if (avgMonth) {
+                // Single month selected — show total for that month
+                const monthTotal = expAvg.filter(t => t.date.slice(0,7) === avgMonth)
+                    .reduce((s,t) => s + t.amount, 0);
+                const [y, mo] = avgMonth.split('-');
+                avgEl.innerHTML = `<div>${fmt(monthTotal)}</div><div class="stat-avg-sub">${MONTHS_RU[parseInt(mo)-1]} ${y}</div>`;
+            } else {
+                // All time — show average across months
+                const months = {};
+                expAvg.forEach(t => { const k = t.date.slice(0,7); months[k] = (months[k]||0) + t.amount; });
+                const vals = Object.values(months);
+                const avg = vals.reduce((s,v) => s+v, 0) / vals.length;
+                const total = vals.reduce((s,v) => s+v, 0);
+                avgEl.innerHTML = `<div>${fmt(avg)}</div><div class="stat-avg-sub">среднее за ${vals.length} мес. · всего ${fmt(total)}</div>`;
+            }
+        }
+
+        // ── EXPORT ────────────────────────────────────────────
+        function exportData() {
+            if (!txs.length) { toast('⚠️ Нет данных для экспорта'); return; }
+            const sep = ';';
+            const header = ['Дата','Тип','Категория','Описание','Сумма'].join(sep);
+            const rows = txs.map(t => [
+                t.date,
+                t.type === 'income' ? 'Доход' : 'Расход',
+                `"${(t.category||'').replace(/"/g,'""')}"`,
+                `"${(t.desc||'').replace(/"/g,'""')}"`,
+                String(t.amount).replace('.',',')
+            ].join(sep));
+            const csv = [header, ...rows].join('\r\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `finances_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            toast('✅ Файл экспортирован');
+        }
+
+        // ── DELETE ALL ────────────────────────────────────────
+        function confirmDeleteAll() {
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+        }
+        async function deleteAllData() {
+            closeModal();
+            closeBurger();
+            if (!currentUser) return;
+            setSyncDot('syncing');
+            try {
+                const snap = await txCollection().get();
+                const batch = db.batch();
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+                toast('🗑 Все данные удалены');
+            } catch(e) {
+                toast('⚠️ Ошибка: ' + e.message);
+                setSyncDot('error');
+            }
+        }
 
         // ── THEME ─────────────────────────────────────────────
         function toggleTheme() {
