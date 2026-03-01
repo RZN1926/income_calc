@@ -1271,6 +1271,45 @@
             border-color: var(--accent);
             background: var(--accent-bg);
         }
+
+        /* SORT ROW */
+        .sort-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 0 10px 0;
+            flex-wrap: wrap;
+        }
+        .sort-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            flex-shrink: 0;
+        }
+        .s-btn {
+            padding: 4px 11px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--sub);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .s-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-bg);
+        }
+        .s-btn.active {
+            background: var(--accent-bg);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
     </style>
 </head>
 
@@ -1437,6 +1476,11 @@
                     <button class="f-btn" onclick="setFilter('expense',this)">Расходы</button>
                 </div>
             </div>
+            <div class="sort-row">
+                <span class="sort-label">Сортировка:</span>
+                <button class="s-btn" id="sortByAdded" onclick="setSort('added',this)">По добавлению</button>
+                <button class="s-btn active" id="sortByDate" onclick="setSort('date',this)">По дате</button>
+            </div>
             <div class="tx-list" id="txList"></div>
         </div>
 
@@ -1508,6 +1552,7 @@
         let selCat = 'Зарплата';
         let selEmoji = '😊';
         let curFilter = 'all';
+        let curSort = 'date'; // 'added' | 'date'
         let unsubTxs = null;   // Firestore listener unsubscribe
 
         function getCats(type) {
@@ -1911,10 +1956,21 @@
             renderList();
         }
 
+        function setSort(s, el) {
+            curSort = s;
+            document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderList();
+        }
+
         function renderList() {
             const el = document.getElementById('txList');
             let items = filterByPeriod(txs);
             if (curFilter !== 'all') items = items.filter(t => t.type === curFilter);
+            if (curSort === 'date') {
+                items = [...items].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+            }
+            // 'added' keeps original order from Firestore (ts desc)
             if (!items.length) {
                 el.innerHTML = `<div class="empty"><div class="ei">💳</div><p>Записей пока нет</p></div>`;
                 return;
