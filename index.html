@@ -1656,6 +1656,61 @@
         .modal-btn.cancel:hover { border-color: var(--accent); color: var(--accent); }
         .modal-btn.confirm { background: var(--expense); color: white; }
         .modal-btn.confirm:hover { opacity: 0.88; }
+        /* CATEGORY CONTEXT MENU */
+        .cat-ctx-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 149;
+        }
+        .cat-ctx-overlay.open { display: block; }
+        .cat-ctx-menu {
+            position: fixed;
+            z-index: 150;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            animation: sIn 0.15s ease;
+        }
+        .cat-ctx-menu.open { display: flex; }
+        .cat-ctx-name {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 4px 10px 6px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2px;
+        }
+        .cat-ctx-del {
+            width: 100%;
+            padding: 9px 12px;
+            border: none;
+            border-radius: 9px;
+            background: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--expense);
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.14s;
+        }
+        .cat-ctx-del:hover { background: var(--expense-bg); }
+
+        /* Long-press highlight */
+        .cat-card.pressing {
+            transform: scale(0.94);
+            opacity: 0.75;
+            transition: transform 0.15s, opacity 0.15s;
+        }
     </style>
 </head>
 
@@ -1733,6 +1788,26 @@
                 <div class="bp-sub-label" style="margin-top:14px">Средние траты в месяц</div>
                 <select class="bp-select stat-month-sel" id="statMonthAvg" onchange="renderStats()" style="width:100%;margin-bottom:10px"></select>
                 <div id="statAvgMonth" class="stat-avg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY CONTEXT MENU -->
+    <div class="cat-ctx-menu" id="catCtxMenu">
+        <div class="cat-ctx-name" id="catCtxName"></div>
+        <button class="cat-ctx-del" id="catCtxDel" onclick="catCtxDelete()">🗑 Удалить категорию</button>
+    </div>
+    <div class="cat-ctx-overlay" id="catCtxOverlay" onclick="closeCatCtx()"></div>
+
+    <!-- CATEGORY DELETE CONFIRM -->
+    <div class="modal-overlay" id="catDelModal">
+        <div class="modal-card">
+            <div class="modal-icon">🗂</div>
+            <div class="modal-title">Удалить категорию?</div>
+            <div class="modal-sub" id="catDelSub"></div>
+            <div class="modal-btns">
+                <button class="modal-btn cancel" onclick="closeCatDelModal()">Отмена</button>
+                <button class="modal-btn confirm" onclick="confirmCatDelete()">Удалить</button>
             </div>
         </div>
     </div>
@@ -2114,13 +2189,20 @@
         // ── CATEGORIES ────────────────────────────────────────
         function renderCats() {
             const cats = getCats(curType);
+            const defNames = new Set((curType === 'income' ? DEF_INC : DEF_EXP).map(c => c.name));
             const sc = document.getElementById('catScroll');
             const sc_cls = 'sel-' + curType;
             sc.innerHTML = cats.map(c => {
                 const sel = c.name === selCat ? sc_cls : '';
-                return `<div class="cat-card ${sel}" onclick="pickCat(this,'${esc(c.name)}')">
+                const isDef = defNames.has(c.name);
+                return `<div class="cat-card ${sel}"
+                    onclick="pickCat(this,'${esc(c.name)}')"
+                    ${!isDef ? `oncontextmenu="openCatCtx(event,'${esc(c.name)}')"
+                    ontouchstart="startLongPress(event,this,'${esc(c.name)}')"
+                    ontouchmove="cancelLongPress()"
+                    ontouchend="cancelLongPress()"` : ''}>
       <span class="cat-em">${c.emoji}</span>
-      <span class="cat-nm">${c.name}</span>
+      <span class="cat-nm">${escH(c.name)}</span>
     </div>`;
             }).join('') +
                 `<div class="cat-card add-card" onclick="openAdd()">
@@ -2130,6 +2212,69 @@
         }
 
         function pickCat(el, name) { selCat = name; closeAdd(); renderCats(); }
+
+        // ── CATEGORY CONTEXT MENU ─────────────────────────────
+        let ctxCatName = '';
+        let longPressTimer = null;
+        let longPressEl = null;
+
+        function openCatCtx(e, name) {
+            e.preventDefault();
+            ctxCatName = name;
+            const menu = document.getElementById('catCtxMenu');
+            const overlay = document.getElementById('catCtxOverlay');
+            document.getElementById('catCtxName').textContent = name;
+            menu.classList.add('open');
+            overlay.classList.add('open');
+            // Position menu near cursor/touch, keep within viewport
+            const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+            const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+            const mw = 210, mh = 80;
+            const vw = window.innerWidth, vh = window.innerHeight;
+            menu.style.left = Math.min(x, vw - mw - 8) + 'px';
+            menu.style.top  = Math.min(y, vh - mh - 8) + 'px';
+        }
+        function closeCatCtx() {
+            document.getElementById('catCtxMenu').classList.remove('open');
+            document.getElementById('catCtxOverlay').classList.remove('open');
+        }
+        function catCtxDelete() {
+            closeCatCtx();
+            document.getElementById('catDelSub').textContent =
+                `Вы точно хотите удалить категорию «${ctxCatName}»?`;
+            document.getElementById('catDelModal').classList.add('open');
+        }
+        function closeCatDelModal() {
+            document.getElementById('catDelModal').classList.remove('open');
+        }
+        async function confirmCatDelete() {
+            closeCatDelModal();
+            if (curType === 'income') {
+                customInc = customInc.filter(c => c.name !== ctxCatName);
+            } else {
+                customExp = customExp.filter(c => c.name !== ctxCatName);
+            }
+            if (selCat === ctxCatName) selCat = getCats(curType)[0]?.name || '';
+            renderCats();
+            await saveSettings();
+            toast(`🗑 Категория «${ctxCatName}» удалена`);
+        }
+
+        // Long-press for mobile
+        function startLongPress(e, el, name) {
+            longPressEl = el;
+            longPressTimer = setTimeout(() => {
+                el.classList.remove('pressing');
+                const touch = e.touches[0];
+                openCatCtx({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: ()=>{} }, name);
+            }, 600);
+            el.classList.add('pressing');
+        }
+        function cancelLongPress() {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+            if (longPressEl) { longPressEl.classList.remove('pressing'); longPressEl = null; }
+        }
 
         function openAdd() {
             document.getElementById('newCatRow').classList.add('open');
