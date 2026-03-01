@@ -1711,6 +1711,25 @@
             opacity: 0.75;
             transition: transform 0.15s, opacity 0.15s;
         }
+
+        /* Category usage count badge */
+        .cat-use {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--muted);
+            background: var(--border);
+            border-radius: 6px;
+            padding: 1px 5px;
+            line-height: 1.4;
+        }
+        .cat-card.sel-income .cat-use {
+            background: rgba(0,196,140,0.18);
+            color: var(--income);
+        }
+        .cat-card.sel-expense .cat-use {
+            background: rgba(255,100,124,0.18);
+            color: var(--expense);
+        }
     </style>
 </head>
 
@@ -2188,13 +2207,23 @@
 
         // ── CATEGORIES ────────────────────────────────────────
         function renderCats() {
-            const cats = getCats(curType);
             const defNames = new Set((curType === 'income' ? DEF_INC : DEF_EXP).map(c => c.name));
             const sc = document.getElementById('catScroll');
             const sc_cls = 'sel-' + curType;
+
+            // Count usage per category for current type
+            const usage = {};
+            txs.filter(t => t.type === curType).forEach(t => {
+                usage[t.category] = (usage[t.category] || 0) + 1;
+            });
+
+            // Sort: by usage desc, then keep original order for ties
+            const cats = getCats(curType).slice().sort((a, b) => (usage[b.name] || 0) - (usage[a.name] || 0));
+
             sc.innerHTML = cats.map(c => {
                 const sel = c.name === selCat ? sc_cls : '';
                 const isDef = defNames.has(c.name);
+                const useCount = usage[c.name];
                 return `<div class="cat-card ${sel}"
                     onclick="pickCat(this,'${esc(c.name)}')"
                     ${!isDef ? `oncontextmenu="openCatCtx(event,'${esc(c.name)}')"
@@ -2399,6 +2428,7 @@
 
             renderList();
             renderChart();
+            renderCats();
         }
 
         // ── PERIOD FILTER ─────────────────────────────────────
