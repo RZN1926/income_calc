@@ -1656,6 +1656,118 @@
         .modal-btn.cancel:hover { border-color: var(--accent); color: var(--accent); }
         .modal-btn.confirm { background: var(--expense); color: white; }
         .modal-btn.confirm:hover { opacity: 0.88; }
+
+        /* AI ASSISTANT */
+        .ai-chat {
+            max-height: 340px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+        .ai-welcome {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px 10px;
+            text-align: center;
+        }
+        .ai-welcome-icon { font-size: 2rem; }
+        .ai-welcome-text { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+        .ai-msg { display: flex; flex-direction: column; gap: 2px; animation: sIn 0.2s ease; }
+        .ai-msg.user { align-items: flex-end; }
+        .ai-msg.ai   { align-items: flex-start; }
+        .ai-bubble {
+            max-width: 90%;
+            padding: 9px 13px;
+            border-radius: 14px;
+            font-size: 0.81rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+        .ai-msg.user .ai-bubble {
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .ai-msg.ai .ai-bubble {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+        .ai-typing {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 13px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+        .ai-typing span {
+            width: 6px; height: 6px;
+            background: var(--muted);
+            border-radius: 50%;
+            animation: aiDot 1.2s infinite ease-in-out;
+        }
+        .ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes aiDot {
+            0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .ai-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .ai-chip {
+            padding: 5px 11px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--sub);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+        }
+        .ai-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+        .ai-input-row { display: flex; gap: 7px; align-items: center; }
+        .ai-input {
+            flex: 1;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            padding: 9px 13px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ai-input:focus { border-color: var(--accent); }
+        .ai-input::placeholder { color: var(--muted); }
+        body.dark .ai-input { color-scheme: dark; }
+        .ai-send {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: opacity 0.15s;
+        }
+        .ai-send:hover { opacity: 0.85; }
+        .ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
         /* CATEGORY CONTEXT MENU */
         .cat-ctx-overlay {
             display: none;
@@ -1807,6 +1919,32 @@
                 <div class="bp-sub-label" style="margin-top:14px">Средние траты в месяц</div>
                 <select class="bp-select stat-month-sel" id="statMonthAvg" onchange="renderStats()" style="width:100%;margin-bottom:10px"></select>
                 <div id="statAvgMonth" class="stat-avg"></div>
+            </div>
+        </div>
+
+        <!-- AI ASSISTANT -->
+        <div class="bp-section">
+            <button class="bp-sec-btn" onclick="toggleSection('secAI')">
+                <span>🤖 ИИ-помощник</span>
+                <span class="bp-arrow" id="arrowAI">›</span>
+            </button>
+            <div class="bp-sec-body" id="secAI">
+                <div class="ai-chat" id="aiChat">
+                    <div class="ai-welcome">
+                        <div class="ai-welcome-icon">✨</div>
+                        <div class="ai-welcome-text">Спроси меня что угодно о своих финансах</div>
+                    </div>
+                </div>
+                <div class="ai-chips" id="aiChips">
+                    <button class="ai-chip" onclick="aiAsk('Сделай отчёт по тратам за последние 3 месяца')">📋 Отчёт за 3 месяца</button>
+                    <button class="ai-chip" onclick="aiAsk('На что я трачу больше всего? Дай совет как сэкономить')">💡 Советы по экономии</button>
+                    <button class="ai-chip" onclick="aiAsk('Сравни мои доходы и расходы по месяцам')">📈 Доходы vs расходы</button>
+                    <button class="ai-chip" onclick="aiAsk('Какая категория расходов самая большая и как её уменьшить?')">✂️ Сократить расходы</button>
+                </div>
+                <div class="ai-input-row">
+                    <input class="ai-input" id="aiInput" type="text" placeholder="Напиши вопрос…" onkeydown="if(event.key==='Enter')aiSend()">
+                    <button class="ai-send" id="aiSendBtn" onclick="aiSend()">→</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2630,12 +2768,105 @@
         }
         function toggleSection(id) {
             const body = document.getElementById(id);
-            const arrowId = id === 'secSettings' ? 'arrowSettings' : 'arrowStats';
-            const arrow = document.getElementById(arrowId);
+            const arrowMap = { secSettings: 'arrowSettings', secStats: 'arrowStats', secAI: 'arrowAI' };
+            const arrow = document.getElementById(arrowMap[id]);
             const isOpen = body.classList.contains('open');
             body.classList.toggle('open', !isOpen);
             arrow.classList.toggle('open', !isOpen);
             if (!isOpen && id === 'secStats') renderStats();
+        }
+
+        // ── AI ASSISTANT (Gemini via Cloudflare Worker) ───────
+        const AI_WORKER_URL = 'https://shrill-mode-6776.kalygulovbeka7.workers.dev';
+        let aiHistory = [];
+
+        function buildFinanceContext() {
+            if (!txs.length) return 'Данных о транзакциях нет.';
+            const sorted = [...txs].sort((a, b) => a.date < b.date ? 1 : -1);
+            const lines = sorted.map(t =>
+                `${t.date} | ${t.type === 'income' ? 'Доход' : 'Расход'} | ${t.category} | ${t.desc || '-'} | ${t.amount} ⃀`
+            );
+            const total_inc = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            const total_exp = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+            return `Финансовые данные пользователя (${txs.length} записей):
+Общий доход: ${total_inc.toFixed(2)} ⃀
+Общий расход: ${total_exp.toFixed(2)} ⃀
+Баланс: ${(total_inc - total_exp).toFixed(2)} ⃀
+
+Транзакции (дата | тип | категория | описание | сумма):
+${lines.join('\n')}`;
+        }
+
+        function aiAddMsg(role, text) {
+            const chat = document.getElementById('aiChat');
+            const welcome = chat.querySelector('.ai-welcome');
+            if (welcome) welcome.remove();
+            const div = document.createElement('div');
+            div.className = `ai-msg ${role}`;
+            div.innerHTML = `<div class="ai-bubble">${escH(text).replace(/\n/g, '<br>')}</div>`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function aiShowTyping() {
+            const chat = document.getElementById('aiChat');
+            const div = document.createElement('div');
+            div.className = 'ai-msg ai';
+            div.id = 'aiTyping';
+            div.innerHTML = `<div class="ai-typing"><span></span><span></span><span></span></div>`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function aiRemoveTyping() {
+            document.getElementById('aiTyping')?.remove();
+        }
+
+        async function aiAsk(text) {
+            document.getElementById('aiInput').value = '';
+            document.getElementById('aiChips').style.display = 'none';
+            aiAddMsg('user', text);
+            aiShowTyping();
+            document.getElementById('aiSendBtn').disabled = true;
+
+            const systemPrompt = `Ты финансовый помощник. Отвечай только на русском языке.
+
+ПРАВИЛА:
+1. Если в вопросе есть математика — сначала ЯВНО выпиши все вычисления пошагово, потом дай вывод. Никогда не считай в уме.
+2. Перед любым умножением, сложением или процентом — напиши формулу: например "34 × 3 = 102".
+3. Используй ТОЛЬКО данные из транзакций пользователя, не придумывай цифры.
+4. Отвечай кратко и по делу. Можно использовать эмодзи и переносы строк.
+5. Если данных недостаточно — честно скажи об этом.
+
+${buildFinanceContext()}`;
+
+            try {
+                const resp = await fetch(AI_WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: systemPrompt + '\n\nВопрос пользователя: ' + text,
+                        history: aiHistory
+                    })
+                });
+                const data = await resp.json();
+                const reply = data.text || '⚠️ Не удалось получить ответ';
+                aiRemoveTyping();
+                aiAddMsg('ai', reply);
+                aiHistory.push({ role: 'user', content: text });
+                aiHistory.push({ role: 'assistant', content: reply });
+            } catch(e) {
+                aiRemoveTyping();
+                aiAddMsg('ai', '⚠️ Ошибка соединения. Попробуй ещё раз.');
+            } finally {
+                document.getElementById('aiSendBtn').disabled = false;
+            }
+        }
+
+        function aiSend() {
+            const val = document.getElementById('aiInput').value.trim();
+            if (!val) return;
+            aiAsk(val);
         }
 
         // ── STATISTICS ────────────────────────────────────────
