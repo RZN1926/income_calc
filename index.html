@@ -1896,7 +1896,19 @@
                 <span class="bp-arrow" id="arrowSettings">›</span>
             </button>
             <div class="bp-sec-body" id="secSettings">
-                <div class="bp-sub-label">Данные</div>
+                <div class="bp-sub-label">Telegram-бот</div>
+                <div id="tgUidBlock" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:10px;display:none">
+                    <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Твой Firebase UID</div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <code id="tgUidValue" style="font-size:0.75rem;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></code>
+                        <button onclick="copyUid()" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit">Копировать</button>
+                    </div>
+                    <div style="font-size:0.7rem;color:var(--muted);margin-top:6px">Отправь боту: <code style="color:var(--accent)">/uid &lt;этот ID&gt;</code></div>
+                </div>
+                <button class="bp-action-btn" onclick="window.open('https://t.me/YOUR_BOT_USERNAME','_blank')" style="background:var(--accent-bg);color:var(--accent);border-color:var(--accent)">
+                    ✈️ Открыть Telegram-бот
+                </button>
+                <div class="bp-sub-label" style="margin-top:10px">Данные</div>
                 <button class="bp-action-btn" onclick="exportData()">
                     📥 Экспорт в CSV
                 </button>
@@ -2235,6 +2247,7 @@
                     av.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
                 }
                 document.getElementById('userName').textContent = user.displayName || user.email || '';
+                showTgUid(user.uid);
 
                 // Show app
                 hideEl('loginScreen');
@@ -2990,6 +3003,23 @@ ${buildFinanceContext()}`;
                 toast('⚠️ Ошибка: ' + e.message);
                 setSyncDot('error');
             }
+        }
+
+        // ── TELEGRAM UID ──────────────────────────────────────
+        function showTgUid(uid) {
+            const block = document.getElementById('tgUidBlock');
+            const val = document.getElementById('tgUidValue');
+            if (block && val && uid) { val.textContent = uid; block.style.display = 'block'; }
+        }
+        function copyUid() {
+            const uid = document.getElementById('tgUidValue').textContent;
+            if (!uid) return;
+            navigator.clipboard.writeText(uid).then(() => toast('✅ UID скопирован!')).catch(() => {
+                const el = document.createElement('textarea');
+                el.value = uid; document.body.appendChild(el); el.select();
+                document.execCommand('copy'); document.body.removeChild(el);
+                toast('✅ UID скопирован!');
+            });
         }
 
         // ── THEME ─────────────────────────────────────────────
